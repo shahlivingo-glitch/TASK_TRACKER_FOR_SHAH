@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee Work Tracker - Admin</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="manifest" href="/site.webmanifest">
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --accent: #4f46e5;
+      --accent-dark: #4338ca;
+      --accent-light: #eef2ff;
+      --ink: #16141f;
+      --muted: #6b7280;
+      --border: #e8e8ee;
+      --surface: #ffffff;
+      --bg: #f3f4f9;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --warn: #d97706;
+      --warn-light: #fffbeb;
+      --ok: #059669;
+      --ok-light: #ecfdf5;
+      --shadow: 0 1px 2px rgba(16,15,30,0.04), 0 8px 24px rgba(16,15,30,0.06);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --accent: #818cf8;
+        --accent-dark: #a5b4fc;
+        --accent-light: #1e1b3a;
+        --ink: #f0f0f5;
+        --muted: #9a97ac;
+        --border: #2c2a3d;
+        --surface: #1b1930;
+        --bg: #121022;
+        --danger: #f87171;
+        --danger-light: #3a1a1e;
+        --warn: #fbbf24;
+        --warn-light: #3a2f10;
+        --ok: #34d399;
+        --ok-light: #10302a;
+        --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+      }
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    .container { width: 100%; max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; padding-bottom: 48px; }
+    .screen { display: none; }
+    .screen.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    h2 { font-size: 15px; margin: 28px 18px 12px; font-weight: 800; }
+
+    .brand { display: flex; flex-direction: column; align-items: center; margin: 64px 0 32px; padding: 0 18px; }
+    .brand-mark {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 20px rgba(79,70,229,0.35); margin-bottom: 14px;
+    }
+    .brand-mark svg { width: 26px; height: 26px; color: #fff; }
+    .brand h1 { font-size: 19px; margin: 0; font-weight: 800; letter-spacing: -0.2px; }
+    .brand p { font-size: 13px; color: var(--muted); margin: 4px 0 0; font-weight: 600; }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin: 0 18px;
+    }
+    .login-card { max-width: 360px; margin: 0 auto; padding: 0 18px; }
+    .login-card .card { margin: 0; }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block; font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 9px;
+    }
+    input[type="text"], input[type="number"], input[type="password"], select {
+      width: 100%; padding: 12px 13px; font-size: 15px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg); color: var(--ink);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus {
+      outline: none; border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-light); background: var(--surface);
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      border: none; border-radius: var(--radius-sm); padding: 13px 20px;
+      font-size: 15px; font-weight: 700; cursor: pointer; color: #fff;
+      background: var(--accent); width: 100%;
+      transition: transform 0.08s, opacity 0.15s;
+      box-shadow: 0 4px 14px rgba(79,70,229,0.3);
+    }
+    .btn svg { width: 16px; height: 16px; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+    .btn:hover { background: var(--accent-dark); }
+    .error-text { color: var(--danger); font-size: 13px; margin: 0 0 12px; min-height: 16px; font-weight: 600; }
+
+    .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      padding: 9px 15px; border-radius: 999px; border: 1.5px solid var(--border);
+      background: var(--bg); color: var(--ink); font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all 0.12s;
+    }
+    .chip:hover { border-color: var(--accent); }
+    .chip.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .task-row {
+      display: grid; grid-template-columns: 1fr 88px 40px; gap: 8px;
+      margin-bottom: 10px; align-items: center;
+    }
+    .task-row input { margin: 0; }
+    .row-remove-btn {
+      width: 40px; height: 44px; border: 1.5px solid var(--border); background: var(--bg);
+      color: var(--danger); border-radius: var(--radius-sm); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .row-remove-btn svg { width: 16px; height: 16px; }
+    .row-remove-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .btn-outline {
+      background: none; color: var(--accent); border: 1.5px dashed var(--accent);
+      width: 100%; padding: 11px; font-size: 14px; box-shadow: none;
+    }
+    .btn-outline:hover { background: var(--accent-light); }
+
+    .top-bar {
+      position: sticky; top: 0; z-index: 5;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 18px; background: rgba(243,244,249,0.85);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border); margin-bottom: 6px;
+    }
+    @media (prefers-color-scheme: dark) { .top-bar { background: rgba(18,16,34,0.85); } }
+    .top-bar-title { display: flex; align-items: center; gap: 10px; }
+    .top-bar-title .brand-mark { width: 34px; height: 34px; border-radius: 10px; margin: 0; }
+    .top-bar-title .brand-mark svg { width: 18px; height: 18px; }
+    .top-bar-title span { font-size: 15px; font-weight: 800; }
+    .icon-btn {
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+      width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+    }
+    .icon-btn svg { width: 17px; height: 17px; }
+    .icon-btn:hover { background: var(--danger-light); color: var(--danger); }
+
+    .task-cards { display: none; padding: 0 18px; }
+    .task-card {
+      background: var(--surface); border-radius: var(--radius-md); padding: 14px 16px;
+      margin-bottom: 10px; border: 1px solid var(--border); box-shadow: var(--shadow);
+      animation: slideUp 0.25s ease;
+    }
+    .task-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .task-card-name { font-size: 15px; font-weight: 800; }
+    .task-card-cat {
+      font-size: 10px; font-weight: 700; color: var(--accent-dark); background: var(--accent-light);
+      padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px; display: inline-block;
+    }
+    .task-card-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+    .task-card-meta b { color: var(--ink); }
+    .task-card-foot { display: flex; justify-content: space-between; align-items: center; }
+
+    .table-wrap {
+      overflow-x: auto; background: var(--surface); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow); border: 1px solid var(--border); margin: 0 18px;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 640px; }
+    th, td { text-align: left; padding: 13px 16px; font-size: 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th { color: var(--muted); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg); }
+
+    .status-badge {
+      font-size: 11px; font-weight: 800; padding: 5px 11px; border-radius: 999px;
+      white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .status-pending { background: #eef0f4; color: #475467; }
+    .status-inprogress { background: #dbeafe; color: #1e40af; }
+    .status-onbreak { background: #fef3c7; color: #92400e; }
+    @media (prefers-color-scheme: dark) {
+      .status-pending { background: #26293a; color: #b6bccb; }
+      .status-inprogress { background: #1e2c52; color: #93b4fb; }
+      .status-onbreak { background: #3a2f10; color: #fbbf24; }
+    }
+
+    .delete-btn {
+      background: none; border: 1px solid var(--border); color: var(--danger);
+      font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px; cursor: pointer;
+    }
+    .delete-btn:hover { background: var(--danger-light); }
+    .delete-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .empty { text-align: center; color: var(--muted); padding: 32px 20px; font-size: 14px; font-weight: 600; }
+
+    @media (max-width: 720px) {
+      .table-wrap { display: none; }
+      .task-cards { display: block; }
+    }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+      background: var(--ink); color: var(--bg); padding: 12px 20px; border-radius: 999px;
+      font-size: 13px; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
+      z-index: 30; max-width: 90%; text-align: center;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.toast-error { background: var(--danger); color: #fff; }
+    .toast.toast-ok { background: var(--ok); color: #fff; }
+    .signature {
+      position: fixed;
+      right: 14px;
+      bottom: 6px;
+      font-family: 'Brush Script MT', 'Segoe Script', cursive;
+      font-size: 13px;
+      font-style: italic;
+      color: var(--ink);
+      opacity: 0.08;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+      animation: sigBreathe 6s ease-in-out infinite;
+      white-space: nowrap;
+    }
+    @keyframes sigBreathe {
+      0%, 100% { opacity: 0.05; }
+      50% { opacity: 0.16; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .signature { animation: none; opacity: 0.1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loginScreen" class="screen active">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <h1>Admin Console</h1>
+        <p>Sign in to manage tasks</p>
+      </div>
+      <div class="login-card">
+        <div class="card">
+          <form id="adminLoginForm">
+            <div class="field">
+              <label for="adminPinInput">Admin PIN</label>
+              <input type="password" id="adminPinInput" inputmode="numeric" autocomplete="off" required>
+            </div>
+            <p class="error-text" id="adminLoginError"></p>
+            <button type="submit" class="btn" id="adminLoginBtn">Login</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="adminScreen" class="screen">
+      <div class="top-bar">
+        <div class="top-bar-title">
+          <div class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <span>Admin Console</span>
+        </div>
+        <button class="icon-btn" id="adminLogoutBtn" title="Logout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+
+      <h2>Assign Work</h2>
+      <div class="card">
+        <form id="assignForm">
+          <div class="field">
+            <label for="empSelect">Employee</label>
+            <select id="empSelect" required>
+              <option value="">Loading employees...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Category</label>
+            <div class="chip-grid" id="categoryChips">
+              <button type="button" class="chip" data-value="Bend Side">Bend Side</button>
+              <button type="button" class="chip" data-value="Support">Support</button>
+              <button type="button" class="chip" data-value="Shelf">Shelf</button>
+              <button type="button" class="chip" data-value="Cutting">Cutting</button>
+              <button type="button" class="chip" data-value="Assembling">Assembling</button>
+              <button type="button" class="chip" data-value="Other">Other</button>
+            </div>
+          </div>
+          <div class="field" id="otherCategoryField" style="display:none;">
+            <label for="otherCategory">Custom Category</label>
+            <input type="text" id="otherCategory">
+          </div>
+
+          <div class="field">
+            <label>Tasks</label>
+            <div id="taskRows"></div>
+            <button type="button" class="btn-outline" id="addTaskRowBtn">+ Add Another Task</button>
+          </div>
+
+          <div class="field">
+            <label for="assignedBy">Assigned By</label>
+            <input type="text" id="assignedBy" required>
+          </div>
+          <button type="submit" class="btn" id="assignBtn">Assign Task(s)</button>
+        </form>
+      </div>
+
+      <h2>All Tasks</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Task</th>
+              <th>Employee</th>
+              <th>Target Qty</th>
+              <th>Status</th>
+              <th>Assigned Date</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tasksBody">
+            <tr><td colspan="7" class="empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="task-cards" id="taskCards"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    var ICONS = {
+      trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4a1 1 0 011-1h2a1 1 0 011 1v2"/></svg>'
+    };
+
+    function esc(s) {
+      return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    var toastTimer = null;
+    function showToast(msg, type) {
+      var el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast show' + (type === 'error' ? ' toast-error' : type === 'ok' ? ' toast-ok' : '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { el.className = 'toast'; }, 3000);
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '';
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return esc(iso);
+      return d.toLocaleString();
+    }
+
+    var API_URL = 'https://script.google.com/macros/s/AKfycbwrpn4HXBVDrKho5uT1OMCbsBonMAOuOZVVL_9nVLbAcy1uN0W8TNjXECeXO2YZH7W7/exec';
+
+    function callApi(action, params) {
+      var url = API_URL + '?action=' + encodeURIComponent(action);
+      Object.keys(params || {}).forEach(function (key) {
+        var value = params[key];
+        if (typeof value === 'object' && value !== null) value = JSON.stringify(value);
+        url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+      });
+      return fetch(url, { cache: 'no-store' })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Network error (' + res.status + ')');
+          return res.json();
+        })
+        .then(function (payload) {
+          if (!payload.ok) throw new Error((payload.data && payload.data.message) || 'Request failed');
+          return payload.data;
+        });
+    }
+
+    var tasksById = {};
+
+    function loadEmployees() {
+      callApi('getEmployees', {})
+        .then(function (emps) {
+          var sel = document.getElementById('empSelect');
+          if (!emps || emps.length === 0) {
+            sel.innerHTML = '<option value="">No active employees</option>';
+            return;
+          }
+          sel.innerHTML = '<option value="">Select employee</option>' +
+            emps.map(function (e) {
+              return '<option value="' + esc(e.empId) + '">' + esc(e.name) + '</option>';
+            }).join('');
+        })
+        .catch(function (err) { showToast('Failed to load employees: ' + err.message, 'error'); });
+    }
+
+    var loadDashboardSeq = 0;
+    function loadDashboard() {
+      var seq = ++loadDashboardSeq;
+      callApi('getAdminDashboard', {})
+        .then(function (tasks) {
+          if (seq !== loadDashboardSeq) return;
+          renderDashboard(tasks);
+        })
+        .catch(function (err) {
+          if (seq !== loadDashboardSeq) return;
+          console.error(err);
+          showToast('Could not refresh the task list.', 'error');
+        });
+    }
+
+    function renderDashboard(tasks) {
+      var body = document.getElementById('tasksBody');
+      var cards = document.getElementById('taskCards');
+      tasksById = {};
+
+      if (!tasks || tasks.length === 0) {
+        body.innerHTML = '<tr><td colspan="7" class="empty">No tasks yet.</td></tr>';
+        cards.innerHTML = '<div class="empty">No tasks yet.</div>';
+        return;
+      }
+
+      tasks.forEach(function (t) { tasksById[t.taskId] = t; });
+
+      body.innerHTML = tasks.map(function (t) {
+        var statusClass = 'status-' + String(t.status).toLowerCase();
+        return '<tr>' +
+          '<td>' + esc(t.category) + '</td>' +
+          '<td>' + esc(t.taskName) + '</td>' +
+          '<td>' + esc(t.empName) + '</td>' +
+          '<td>' + esc(t.targetQty) + '</td>' +
+          '<td><span class="status-badge ' + statusClass + '"><span class="dot"></span>' + esc(t.status) + '</span></td>' +
+          '<td>' + formatDate(t.assignedDate) + '</td>' +
+          '<td><button class="delete-btn" onclick="deleteTaskAction(\'' + t.taskId + '\', this)">Delete</button></td>' +
+        '</tr>';
+      }).join('');
+
+      cards.innerHTML = tasks.map(function (t) {
+        var statusClass = 'status-' + String(t.status).toLowerCase();
+        return '<div class="task-card">' +
+          '<div class="task-card-top">' +
+            '<div>' +
+              '<span class="task-card-cat">' + esc(t.category) + '</span><br>' +
+              '<span class="task-card-name">' + esc(t.taskName) + '</span>' +
+            '</div>' +
+            '<span class="status-badge ' + statusClass + '"><span class="dot"></span>' + esc(t.status) + '</span>' +
+          '</div>' +
+          '<div class="task-card-meta">' +
+            '<span>' + esc(t.empName) + '</span>' +
+            '<span>Qty: <b>' + esc(t.targetQty) + '</b></span>' +
+            '<span>' + formatDate(t.assignedDate) + '</span>' +
+          '</div>' +
+          '<div class="task-card-foot">' +
+            '<button class="delete-btn" onclick="deleteTaskAction(\'' + t.taskId + '\', this)">Delete</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function deleteTaskAction(taskId, btn) {
+      if (!confirm('Delete this task? This cannot be undone.')) return;
+      btn.disabled = true;
+      btn.textContent = 'Deleting...';
+      callApi('deleteTask', { taskId: taskId })
+        .then(function () { showToast('Task deleted.', 'ok'); loadDashboard(); })
+        .catch(function (err) {
+          btn.disabled = false;
+          btn.textContent = 'Delete';
+          showToast('Failed to delete task: ' + err.message, 'error');
+        });
+    }
+
+    function makeTaskRow() {
+      var row = document.createElement('div');
+      row.className = 'task-row';
+      row.innerHTML =
+        '<input type="text" class="taskNameInput" placeholder="Task name">' +
+        '<input type="number" class="taskQtyInput" placeholder="Qty" min="1">' +
+        '<button type="button" class="row-remove-btn" onclick="removeTaskRow(this)">' + ICONS.trash + '</button>';
+      return row;
+    }
+
+    function addTaskRow() {
+      document.getElementById('taskRows').appendChild(makeTaskRow());
+      updateRemoveButtons();
+    }
+
+    function removeTaskRow(btn) {
+      var rows = document.getElementById('taskRows');
+      if (rows.children.length <= 1) return;
+      btn.closest('.task-row').remove();
+      updateRemoveButtons();
+    }
+
+    function updateRemoveButtons() {
+      var rows = document.getElementById('taskRows');
+      var disable = rows.children.length <= 1;
+      Array.prototype.forEach.call(rows.querySelectorAll('.row-remove-btn'), function (b) {
+        b.disabled = disable;
+      });
+    }
+
+    document.getElementById('addTaskRowBtn').addEventListener('click', addTaskRow);
+    addTaskRow();
+
+    var selectedCategory = '';
+    document.getElementById('categoryChips').addEventListener('click', function (ev) {
+      var chip = ev.target.closest('.chip');
+      if (!chip) return;
+      Array.prototype.forEach.call(document.querySelectorAll('#categoryChips .chip'), function (c) {
+        c.classList.remove('selected');
+      });
+      chip.classList.add('selected');
+      selectedCategory = chip.getAttribute('data-value');
+      document.getElementById('otherCategoryField').style.display = selectedCategory === 'Other' ? 'block' : 'none';
+    });
+
+    document.getElementById('assignForm').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var empId = document.getElementById('empSelect').value;
+      var category = selectedCategory === 'Other' ? document.getElementById('otherCategory').value.trim() : selectedCategory;
+      var assignedBy = document.getElementById('assignedBy').value.trim();
+
+      var tasks = [];
+      Array.prototype.forEach.call(document.querySelectorAll('#taskRows .task-row'), function (row) {
+        var name = row.querySelector('.taskNameInput').value.trim();
+        var qty = row.querySelector('.taskQtyInput').value;
+        if (name && qty) {
+          tasks.push({ taskName: name, targetQty: Number(qty) });
+        }
+      });
+
+      if (!empId) { showToast('Please select an employee.', 'error'); return; }
+      if (!category) { showToast('Please select or enter a category.', 'error'); return; }
+      if (tasks.length === 0) { showToast('Add at least one task with a name and quantity.', 'error'); return; }
+      if (!assignedBy) { showToast('Please enter who is assigning this task.', 'error'); return; }
+
+      var btn = document.getElementById('assignBtn');
+      btn.disabled = true;
+      callApi('assignTasks', { empId: empId, category: category, tasks: tasks, assignedBy: assignedBy })
+        .then(function () {
+          btn.disabled = false;
+          showToast('Task(s) assigned.', 'ok');
+          document.getElementById('assignForm').reset();
+          Array.prototype.forEach.call(document.querySelectorAll('#categoryChips .chip'), function (c) {
+            c.classList.remove('selected');
+          });
+          selectedCategory = '';
+          document.getElementById('otherCategoryField').style.display = 'none';
+          document.getElementById('taskRows').innerHTML = '';
+          addTaskRow();
+          loadDashboard();
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          showToast('Failed to assign task(s): ' + err.message, 'error');
+        });
+    });
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('active'); });
+      document.getElementById(id).classList.add('active');
+    }
+
+    function showAdmin() {
+      showScreen('adminScreen');
+      loadEmployees();
+      loadDashboard();
+    }
+
+    document.getElementById('adminLoginForm').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var pin = document.getElementById('adminPinInput').value.trim();
+      if (!pin) return;
+      document.getElementById('adminLoginError').textContent = '';
+      var btn = document.getElementById('adminLoginBtn');
+      btn.disabled = true;
+      btn.textContent = 'Checking...';
+      callApi('authenticateAdmin', { pin: pin })
+        .then(function (ok) {
+          btn.disabled = false;
+          btn.textContent = 'Login';
+          if (!ok) {
+            document.getElementById('adminLoginError').textContent = 'Invalid PIN. Please try again.';
+            return;
+          }
+          sessionStorage.setItem('ewt_admin', '1');
+          showAdmin();
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          btn.textContent = 'Login';
+          document.getElementById('adminLoginError').textContent = err.message;
+        });
+    });
+
+    document.getElementById('adminLogoutBtn').addEventListener('click', function () {
+      sessionStorage.removeItem('ewt_admin');
+      document.getElementById('adminPinInput').value = '';
+      showScreen('loginScreen');
+    });
+
+    if (sessionStorage.getItem('ewt_admin') === '1') {
+      showAdmin();
+    }
+  </script>
+  <div class="signature">T.G Rajiv Agrawal</div>
+</body>
+</html>
